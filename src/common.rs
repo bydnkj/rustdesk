@@ -139,6 +139,14 @@ pub fn is_support_file_copy_paste_num(ver: i64) -> bool {
     ver >= hbb_common::get_version_number("1.3.8")
 }
 
+pub fn is_support_remote_print(ver: &str) -> bool {
+    hbb_common::get_version_number(ver) >= hbb_common::get_version_number("1.3.9")
+}
+
+pub fn is_support_file_paste_if_macos(ver: &str) -> bool {
+    hbb_common::get_version_number(ver) >= hbb_common::get_version_number("1.3.9")
+}
+
 // is server process, with "--server" args
 #[inline]
 pub fn is_server() -> bool {
@@ -822,7 +830,13 @@ pub fn is_modifier(evt: &KeyEvent) -> bool {
 }
 
 pub fn check_software_update() {
-    std::thread::spawn(move || allow_err!(check_software_update_()));
+    if is_custom_client() {
+        return;
+    } 
+    let opt = config::LocalConfig::get_option(config::keys::OPTION_ENABLE_CHECK_UPDATE);
+    if config::option2bool(config::keys::OPTION_ENABLE_CHECK_UPDATE, &opt) {
+        std::thread::spawn(move || allow_err!(check_software_update_()));
+    }
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -1721,9 +1735,17 @@ pub fn get_builtin_option(key: &str) -> String {
         .unwrap_or_default()
 }
 
+#[inline]
+pub fn is_custom_client() -> bool {
+    get_app_name() != "RustDesk"
+}
+
 pub fn verify_login(raw: &str, id: &str) -> bool {
     true
     /*
+    if is_custom_client() {
+        return true;
+    }
     #[cfg(debug_assertions)]
     return true;
     let Ok(pk) = crate::decode64("IycjQd4TmWvjjLnYd796Rd+XkK+KG+7GU1Ia7u4+vSw=") else {
