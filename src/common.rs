@@ -1004,7 +1004,7 @@ fn get_api_server_(api: String, custom: String) -> String {
             return format!("http://{}", s);
         }
     }
-    "http://39.107.156.108".to_owned()
+    "http://39.107.156.108:21114".to_owned()
 }
 
 #[inline]
